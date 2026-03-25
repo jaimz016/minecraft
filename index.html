@@ -54,6 +54,49 @@
             color: #ff8080;
             border: 1px solid #7a2b2b;
         }
+        .enchant-card.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+        .rank-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        .rank-badge-2 {
+            background: linear-gradient(135deg, #c0c0c0, #808080);
+            color: #000;
+        }
+        .rank-badge-3 {
+            background: linear-gradient(135deg, #cd7f32, #8b4513);
+            color: #fff;
+        }
+        #autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 4px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        .suggestion-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #252525;
+        }
+        .suggestion-item:hover {
+            background-color: #252525;
+            color: var(--mc-green);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -63,9 +106,10 @@
             <h1 class="text-4xl md:text-5xl font-black mc-font tracking-wider text-[#38e038]">MINECRAFT 1.21+</h1>
             <p class="text-gray-400 font-bold uppercase tracking-widest text-xs">Late-Game Reference Manual</p>
         </div>
-        <div class="flex gap-2">
-            <input type="text" id="searchEnchant" placeholder="Search enchantments..." 
-                class="bg-[#1e1e1e] border border-[#333] px-4 py-2 rounded-lg focus:outline-none focus:border-[#38e038] text-sm w-64">
+        <div class="relative w-full md:w-64">
+            <input type="text" id="searchEnchant" autocomplete="off" placeholder="Search enchantments..." 
+                class="bg-[#1e1e1e] border border-[#333] px-4 py-2 rounded-lg focus:outline-none focus:border-[#38e038] text-sm w-full">
+            <div id="autocomplete-list"></div>
         </div>
     </header>
 
@@ -196,6 +240,49 @@
             </div>
         </section>
 
+        <!-- BUILD HELPER TAB -->
+        <section id="tab-buildhelper" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1">
+                    <div class="card p-6 rounded-2xl sticky top-8">
+                        <h3 class="mc-font text-2xl text-blue-400 mb-4 uppercase">Select Item</h3>
+                        <select id="itemSelect" onchange="updateBuildHelper()" class="w-full bg-[#252525] border border-[#333] p-3 rounded-xl text-white outline-none focus:border-blue-400 mb-6">
+                            <option value="Sword">Sword</option>
+                            <option value="Pickaxe">Pickaxe</option>
+                            <option value="Axe">Axe</option>
+                            <option value="Shovel">Shovel</option>
+                            <option value="Hoe">Hoe</option>
+                            <option value="Bow">Bow</option>
+                            <option value="Crossbow">Crossbow</option>
+                            <option value="Trident">Trident</option>
+                            <option value="Mace">Mace</option>
+                            <option value="Spear">Spear</option>
+                            <option value="Helmet">Helmet</option>
+                            <option value="Chestplate">Chestplate</option>
+                            <option value="Leggings">Leggings</option>
+                            <option value="Boots">Boots</option>
+                            <option value="Elytra">Elytra</option>
+                            <option value="Wolf Armor">Wolf Armor</option>
+                        </select>
+                        <div id="buildSummary" class="mt-4 p-4 bg-black/40 rounded-xl border border-[#333]">
+                            <p class="text-[10px] font-black uppercase text-gray-500 mb-2">Current Build</p>
+                            <div id="selectedEnchants" class="flex flex-wrap gap-1 mb-4">
+                                <span class="text-xs text-gray-400 italic">No enchantments selected</span>
+                            </div>
+                            <div id="buildFeedback" class="text-xs border-t border-[#333] pt-3 text-blue-400 italic">
+                                Select enchantments to see build feedback...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="enchantOptions">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- UTILITY TAB -->
         <section id="tab-utility" class="tab-content hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -222,60 +309,74 @@
 
     <script>
         const enchantments = [
-            { name: "Protection", max: "IV", items: "Armor", desc: "Reduces most types of damage." },
-            { name: "Fire Protection", max: "IV", items: "Armor", desc: "Reduces fire damage and burn time." },
-            { name: "Blast Protection", max: "IV", items: "Armor", desc: "Reduces explosion damage and knockback." },
-            { name: "Projectile Prot.", max: "IV", items: "Armor", desc: "Reduces damage from arrows, fireballs, etc." },
-            { name: "Thorns", max: "III", items: "Armor", desc: "Damages attackers at cost of durability." },
-            { name: "Respiration", max: "III", items: "Helmet", desc: "Extends underwater breathing time." },
-            { name: "Aqua Affinity", max: "I", items: "Helmet", desc: "Increases underwater mining speed." },
-            { name: "Swift Sneak", max: "III", items: "Leggings", desc: "Increases movement speed while crouching." },
-            { name: "Depth Strider", max: "III", items: "Boots", desc: "Increases underwater movement speed." },
-            { name: "Frost Walker", max: "II", items: "Boots", desc: "Creates frosted ice when walking on water." },
-            { name: "Feather Falling", max: "IV", items: "Boots", desc: "Reduces fall damage." },
-            { name: "Sharpness", max: "V", items: "Sword/Axe", desc: "Increases general melee damage." },
-            { name: "Smite", max: "V", items: "Sword/Axe", desc: "Increases damage to Undead mobs." },
-            { name: "Bane of Arthropods", max: "V", items: "Sword/Axe", desc: "Increases damage to spiders/bees/silverfish." },
-            { name: "Knockback", max: "II", items: "Sword", desc: "Increases knockback distance." },
-            { name: "Fire Aspect", max: "II", items: "Sword", desc: "Sets targets on fire." },
-            { name: "Looting", max: "III", items: "Sword", desc: "Increases mob drop amounts/rarity." },
-            { name: "Efficiency", max: "V", items: "Tools", desc: "Increases mining/digging speed." },
-            { name: "Silk Touch", max: "I", items: "Tools", desc: "Drops the block itself instead of the item." },
-            { name: "Fortune", max: "III", items: "Tools", desc: "Increases item drops." },
-            { name: "Power", max: "V", items: "Bow", desc: "Increases arrow damage." },
-            { name: "Punch", max: "II", items: "Bow", desc: "Increases arrow knockback." },
-            { name: "Flame", max: "I", items: "Bow", desc: "Shoots flaming arrows." },
-            { name: "Infinity", max: "I", items: "Bow", desc: "Arrows are not consumed." },
-            { name: "Quick Charge", max: "III", items: "Crossbow", desc: "Reduces reload time." },
-            { name: "Multishot", max: "I", items: "Crossbow", desc: "Fires 3 arrows/rockets for cost of 1." },
-            { name: "Piercing", max: "IV", items: "Crossbow", desc: "Arrows fly through enemies." },
-            { name: "Impaling", max: "V", items: "Trident", desc: "Increases damage to aquatic mobs." },
-            { name: "Loyalty", max: "III", items: "Trident", desc: "Trident returns when thrown." },
-            { name: "Riptide", max: "III", items: "Trident", desc: "Launches player in rain/water." },
-            { name: "Channeling", max: "I", items: "Trident", desc: "Summons lightning on hit during storms." },
-            { name: "Lunge", max: "III", items: "Spear", desc: "Propels player forward horizontally on a jump attack (Bedrock 1.26+)." },
-            { name: "Density", max: "V", items: "Mace", desc: "Increases smash attack damage per block fallen." },
-            { name: "Breach", max: "IV", items: "Mace", desc: "Reduces enemy armor effectiveness." },
-            { name: "Wind Burst", max: "III", items: "Mace", desc: "Launches player upward upon hit." },
-            { name: "Mending", max: "I", items: "Everything", desc: "Uses XP to repair durability." },
-            { name: "Unbreaking", max: "III", items: "Everything", desc: "Chance to not decrease durability." }
+            { name: "Protection", max: "IV", items: ["Armor", "Wolf Armor"], desc: "Reduces most damage.", group: "prot" },
+            { name: "Fire Protection", max: "IV", items: ["Armor"], desc: "Reduces fire damage.", group: "prot" },
+            { name: "Blast Protection", max: "IV", items: ["Armor"], desc: "Reduces explosion damage.", group: "prot" },
+            { name: "Projectile Prot.", max: "IV", items: ["Armor"], desc: "Reduces projectile damage.", group: "prot" },
+            { name: "Thorns", max: "III", items: ["Armor"], desc: "Damages attackers." },
+            { name: "Respiration", max: "III", items: ["Helmet"], desc: "Extended breathing." },
+            { name: "Aqua Affinity", max: "I", items: ["Helmet"], desc: "Faster underwater mining." },
+            { name: "Swift Sneak", max: "III", items: ["Leggings"], desc: "Faster crouching." },
+            { name: "Depth Strider", max: "III", items: ["Boots"], desc: "Faster water movement.", group: "water_move" },
+            { name: "Frost Walker", max: "II", items: ["Boots"], desc: "Walk on water.", group: "water_move" },
+            { name: "Feather Falling", max: "IV", items: ["Boots"], desc: "Less fall damage." },
+            { name: "Sharpness", max: "V", items: ["Sword", "Axe", "Mace", "Spear"], desc: "General damage.", group: "dmg" },
+            { name: "Smite", max: "V", items: ["Sword", "Axe", "Mace", "Spear"], desc: "Undead damage.", group: "dmg" },
+            { name: "Bane of Arthropods", max: "V", items: ["Sword", "Axe", "Mace", "Spear"], desc: "Arthropod damage.", group: "dmg" },
+            { name: "Knockback", max: "II", items: ["Sword"], desc: "Knock mobs back." },
+            { name: "Fire Aspect", max: "II", items: ["Sword"], desc: "Burn targets." },
+            { name: "Looting", max: "III", items: ["Sword"], desc: "More mob drops." },
+            { name: "Efficiency", max: "V", items: ["Pickaxe", "Axe", "Shovel", "Hoe"], desc: "Faster mining." },
+            { name: "Silk Touch", max: "I", items: ["Pickaxe", "Axe", "Shovel", "Hoe"], desc: "Get blocks.", group: "harvest" },
+            { name: "Fortune", max: "III", items: ["Pickaxe", "Axe", "Shovel", "Hoe"], desc: "More items.", group: "harvest" },
+            { name: "Power", max: "V", items: ["Bow"], desc: "Bow damage." },
+            { name: "Punch", max: "II", items: ["Bow"], desc: "Bow knockback." },
+            { name: "Flame", max: "I", items: ["Bow"], desc: "Flaming arrows." },
+            { name: "Infinity", max: "I", items: ["Bow"], desc: "Unlimited arrows.", group: "bow_meta" },
+            { name: "Quick Charge", max: "III", items: ["Crossbow"], desc: "Faster reload." },
+            { name: "Multishot", max: "I", items: ["Crossbow"], desc: "Fires 3 items.", group: "cb_mode" },
+            { name: "Piercing", max: "IV", items: ["Crossbow"], desc: "Arrows penetrate.", group: "cb_mode" },
+            { name: "Impaling", max: "V", items: ["Trident"], desc: "Water mob/rain damage." },
+            { name: "Loyalty", max: "III", items: ["Trident"], desc: "Trident returns.", group: "tri_special" },
+            { name: "Riptide", max: "III", items: ["Trident"], desc: "Launch self.", group: "tri_special" },
+            { name: "Channeling", max: "I", items: ["Trident"], desc: "Summon lightning.", group: "tri_special" },
+            { name: "Lunge", max: "III", items: ["Spear"], desc: "Forward boost (Jump)." },
+            { name: "Density", max: "V", items: ["Mace"], desc: "Fall damage buff.", group: "mace_special" },
+            { name: "Breach", max: "IV", items: ["Mace"], desc: "Armor penetration.", group: "mace_special" },
+            { name: "Wind Burst", max: "III", items: ["Mace"], desc: "Bounce on hit." },
+            { name: "Mending", max: "I", items: ["Everything"], desc: "Repair with XP.", group: "repair_meta" },
+            { name: "Unbreaking", max: "III", items: ["Everything"], desc: "Better durability." }
         ];
 
+        const recommendations = {
+            "Sword": ["Sharpness", "Looting", "Mending"],
+            "Pickaxe": ["Efficiency", "Fortune", "Mending"],
+            "Axe": ["Efficiency", "Sharpness", "Mending"],
+            "Shovel": ["Efficiency", "Unbreaking", "Mending"],
+            "Hoe": ["Efficiency", "Fortune", "Mending"],
+            "Bow": ["Power", "Infinity", "Punch"],
+            "Crossbow": ["Quick Charge", "Piercing", "Mending"],
+            "Trident": ["Loyalty", "Impaling", "Mending"],
+            "Mace": ["Density", "Wind Burst", "Breach"],
+            "Spear": ["Lunge", "Sharpness", "Mending"],
+            "Helmet": ["Protection", "Respiration", "Aqua Affinity"],
+            "Chestplate": ["Protection", "Unbreaking", "Mending"],
+            "Leggings": ["Protection", "Swift Sneak", "Mending"],
+            "Boots": ["Protection", "Feather Falling", "Depth Strider"],
+            "Elytra": ["Unbreaking", "Mending"],
+            "Wolf Armor": ["Protection", "Unbreaking", "Mending"]
+        };
+
         const godGear = [
-            { item: "Sword", enchants: "Sharpness V, Looting III, Fire Aspect II, Unbreaking III, Mending (Note: No Sweeping Edge on Bedrock)" },
+            { item: "Sword", enchants: "Sharpness V, Looting III, Fire Aspect II, Unbreaking III, Mending" },
             { item: "Pickaxe (Fortune)", enchants: "Efficiency V, Fortune III, Unbreaking III, Mending" },
             { item: "Pickaxe (Silk)", enchants: "Efficiency V, Silk Touch, Unbreaking III, Mending" },
             { item: "Axe", enchants: "Sharpness V (or Smite V), Efficiency V, Silk Touch, Unbreaking III, Mending" },
-            { item: "Shovel", enchants: "Efficiency V, Silk Touch, Unbreaking III, Mending" },
             { item: "Bow", enchants: "Power V, Punch II, Flame, Infinity, Unbreaking III" },
-            { item: "Crossbow", enchants: "Quick Charge III, Piercing IV (or Multishot), Unbreaking III, Mending" },
+            { item: "Spear", enchants: "Lunge III, Sharpness V, Unbreaking III, Mending" },
             { item: "Mace", enchants: "Density V, Wind Burst III, Breach IV, Unbreaking III, Mending" },
-            { item: "Spear", enchants: "Lunge III, Sharpness V, Unbreaking III, Mending (Bedrock Meta: Best for reach & travel)" },
-            { item: "Trident (God Tier)", enchants: "Impaling V (OP on Bedrock), Loyalty III, Channeling I, Unbreaking III, Mending" },
-            { item: "Wolf Armor", enchants: "Protection IV, Unbreaking III, Mending (Note: High durability, repairs with Scutes)" },
-            { item: "Helmet", enchants: "Protection IV, Respiration III, Aqua Affinity, Unbreaking III, Mending" },
-            { item: "Chestplate", enchants: "Protection IV, Thorns III, Unbreaking III, Mending" },
-            { item: "Leggings", enchants: "Protection IV, Swift Sneak III, Unbreaking III, Mending" },
+            { item: "Trident", enchants: "Impaling V, Loyalty III, Channeling I, Unbreaking III, Mending" },
+            { item: "Wolf Armor", enchants: "Protection IV, Unbreaking III, Mending" },
             { item: "Boots", enchants: "Protection IV, Feather Falling IV, Depth Strider III, Soul Speed III, Unbreaking III, Mending" }
         ];
 
@@ -284,18 +385,195 @@
             body.innerHTML = '';
             enchantments.filter(e => 
                 e.name.toLowerCase().includes(filter.toLowerCase()) || 
-                e.items.toLowerCase().includes(filter.toLowerCase())
+                e.items.some(i => i.toLowerCase().includes(filter.toLowerCase()))
             ).forEach(e => {
                 const tr = document.createElement('tr');
                 tr.className = 'enchantment-row';
+                const itemsText = Array.isArray(e.items) ? e.items.join(', ') : e.items;
                 tr.innerHTML = `
                     <td class="p-4 font-bold text-white">${e.name}</td>
                     <td class="p-4 text-gray-400 font-mono">${e.max}</td>
-                    <td class="p-4 text-xs font-bold uppercase tracking-tighter text-[#38e038]">${e.items}</td>
+                    <td class="p-4 text-xs font-bold uppercase tracking-tighter text-[#38e038]">${itemsText}</td>
                     <td class="p-4 text-sm text-gray-400">${e.desc}</td>
                 `;
                 body.appendChild(tr);
             });
+        }
+
+        // AUTOCOMPLETE LOGIC
+        const searchInput = document.getElementById('searchEnchant');
+        const autocompleteList = document.getElementById('autocomplete-list');
+
+        searchInput.addEventListener('input', function() {
+            const val = this.value;
+            autocompleteList.innerHTML = '';
+            if (!val) {
+                autocompleteList.style.display = 'none';
+                renderEnchantments(""); // Reset table
+                return;
+            }
+
+            const matches = enchantments.filter(e => e.name.toLowerCase().includes(val.toLowerCase()));
+            
+            if (matches.length > 0) {
+                autocompleteList.style.display = 'block';
+                matches.forEach(match => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerHTML = `<strong>${match.name}</strong> <span class="text-[10px] text-gray-500 float-right">${match.items[0]}</span>`;
+                    div.addEventListener('click', function() {
+                        searchInput.value = match.name;
+                        autocompleteList.style.display = 'none';
+                        renderEnchantments(match.name);
+                        showTab('enchantments'); // Switch to enchantments tab
+                    });
+                    autocompleteList.appendChild(div);
+                });
+            } else {
+                autocompleteList.style.display = 'none';
+                renderEnchantments(val); // Still update table with partial search
+            }
+        });
+
+        // Close autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== searchInput) {
+                autocompleteList.style.display = 'none';
+            }
+        });
+
+        function updateBuildHelper() {
+            const item = document.getElementById('itemSelect').value;
+            const container = document.getElementById('enchantOptions');
+            container.innerHTML = '';
+
+            const isArmor = ["Helmet", "Chestplate", "Leggings", "Boots"].includes(item);
+            const compatible = enchantments.filter(e => 
+                e.items.includes(item) || e.items.includes("Everything") || (isArmor && e.items.includes("Armor"))
+            );
+
+            compatible.forEach(e => {
+                const div = document.createElement('div');
+                div.id = `card-${e.name}`;
+                div.className = 'card p-4 rounded-xl flex items-start gap-4 enchant-card';
+                
+                // Priority Badge Logic
+                let badgeHtml = '';
+                const recs = recommendations[item] || [];
+                const rank = recs.indexOf(e.name);
+                if (rank !== -1) {
+                    const rankClass = rank === 0 ? 'rank-badge' : (rank === 1 ? 'rank-badge-2' : 'rank-badge-3');
+                    badgeHtml = `<span class="${rankClass} text-[9px] px-1.5 py-0.5 rounded font-black uppercase ml-auto">No.${rank + 1}</span>`;
+                }
+
+                div.innerHTML = `
+                    <input type="checkbox" id="check-${e.name}" onchange="handleEnchantChange('${e.group}', '${e.name}')" 
+                        class="mt-1 w-5 h-5 accent-blue-500 rounded border-[#333] bg-[#252525]">
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between gap-2">
+                            <label for="check-${e.name}" class="block font-bold text-white cursor-pointer text-sm">${e.name} ${e.max}</label>
+                            ${badgeHtml}
+                        </div>
+                        <p class="text-[10px] text-gray-400">${e.desc}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            updateBuildSummary();
+        }
+
+        function handleEnchantChange(group, name) {
+            updateDisabledStates();
+            updateBuildSummary();
+        }
+
+        function updateDisabledStates() {
+            const item = document.getElementById('itemSelect').value;
+            const checkedBoxes = Array.from(document.querySelectorAll('#enchantOptions input[type="checkbox"]:checked'));
+            const checkedNames = checkedBoxes.map(cb => cb.id.replace('check-', ''));
+            const checkedGroups = checkedNames.map(name => enchantments.find(e => e.name === name).group).filter(g => g);
+
+            document.querySelectorAll('.enchant-card').forEach(card => {
+                const name = card.id.replace('card-', '');
+                const cb = document.getElementById(`check-${name}`);
+                const enchant = enchantments.find(e => e.name === name);
+                
+                if (cb.checked) {
+                    card.classList.remove('disabled');
+                    cb.disabled = false;
+                    return;
+                }
+
+                let isBlocked = false;
+                if (enchant.group && checkedGroups.includes(enchant.group)) isBlocked = true;
+                if (item === "Trident") {
+                    if (name === "Riptide" && (checkedNames.includes("Loyalty") || checkedNames.includes("Channeling"))) isBlocked = true;
+                    if ((name === "Loyalty" || name === "Channeling") && checkedNames.includes("Riptide")) isBlocked = true;
+                }
+                if (item === "Bow") {
+                    if (name === "Mending" && checkedNames.includes("Infinity")) isBlocked = true;
+                    if (name === "Infinity" && checkedNames.includes("Mending")) isBlocked = true;
+                }
+
+                if (isBlocked) {
+                    card.classList.add('disabled');
+                    cb.disabled = true;
+                } else {
+                    card.classList.remove('disabled');
+                    cb.disabled = false;
+                }
+            });
+        }
+
+        function getBuildFeedback() {
+            const item = document.getElementById('itemSelect').value;
+            const checked = Array.from(document.querySelectorAll('#enchantOptions input[type="checkbox"]:checked')).map(cb => cb.id.replace('check-', ''));
+            
+            if (checked.length === 0) return "Select enchantments to see build feedback...";
+
+            let feedback = "This is a ";
+            if (checked.includes("Sharpness")) feedback += "balanced, general-purpose ";
+            if (checked.includes("Smite")) feedback += "specialized Undead-slayer ";
+            if (checked.includes("Silk Touch")) feedback += "precision resource-gathering ";
+            if (checked.includes("Fortune")) feedback += "high-yield loot-focused ";
+            if (checked.includes("Infinity")) feedback += "sustainable marksman ";
+            if (checked.includes("Riptide")) feedback += "high-mobility aerial ";
+            if (checked.includes("Lunge")) feedback += "fast-reach gap-closing ";
+            if (checked.includes("Protection")) feedback += "sturdy all-around defensive ";
+            if (checked.includes("Fire Protection")) feedback += "lava-resistant specialized ";
+            feedback += `${item.toLowerCase()} build. `;
+
+            if (checked.includes("Mending") && checked.includes("Unbreaking")) {
+                feedback += "It is virtually indestructible with XP repair.";
+            } else if (checked.includes("Mending")) {
+                feedback += "It will last forever as long as you gather XP.";
+            } else if (checked.includes("Unbreaking")) {
+                feedback += "It has great durability for long trips.";
+            }
+            if (checked.includes("Looting") || checked.includes("Fortune")) {
+                feedback += " Excellent for farming rare resources.";
+            }
+            return feedback;
+        }
+
+        function updateBuildSummary() {
+            const summaryCont = document.getElementById('selectedEnchants');
+            const feedbackCont = document.getElementById('buildFeedback');
+            summaryCont.innerHTML = '';
+            const checked = Array.from(document.querySelectorAll('#enchantOptions input[type="checkbox"]:checked'));
+            if (checked.length === 0) {
+                summaryCont.innerHTML = '<span class="text-xs text-gray-400 italic">No enchantments selected</span>';
+                feedbackCont.innerText = "Select enchantments to see build feedback...";
+                return;
+            }
+            checked.forEach(cb => {
+                const name = cb.id.replace('check-', '');
+                const span = document.createElement('span');
+                span.className = 'bg-blue-900/40 text-blue-300 px-2 py-1 rounded text-[10px] font-bold border border-blue-500/30';
+                span.innerText = name;
+                summaryCont.appendChild(span);
+            });
+            feedbackCont.innerText = getBuildFeedback();
         }
 
         function renderGear() {
@@ -321,13 +599,10 @@
             document.getElementById('btn-' + tabId).classList.add('tab-active');
         }
 
-        document.getElementById('searchEnchant').addEventListener('input', (e) => {
-            renderEnchantments(e.target.value);
-        });
-
         // Initialize
         renderEnchantments();
         renderGear();
+        updateBuildHelper();
     </script>
 </body>
 </html>

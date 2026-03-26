@@ -117,10 +117,33 @@
         }
         .exp-progress {
             height: 100%;
-            background: var(--mc-accent);
-            box-shadow: 0 0 10px var(--mc-accent);
+            background: linear-gradient(90deg, #38e038, #aaffaa, #38e038);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite linear;
+            box-shadow: 0 0 15px var(--mc-accent);
             width: 85%;
             transition: width 0.5s ease;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .exp-progress.full {
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            from { box-shadow: 0 0 10px #38e038; }
+            to { box-shadow: 0 0 25px #38e038; transform: scaleY(1.2); }
+        }
+
+        /* Search Category Tags */
+        .search-tag {
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 4px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-left: 8px;
         }
         .theme-dot {
             width: 14px;
@@ -226,6 +249,14 @@
         .suggestion-item:hover {
             background: rgba(255, 255, 255, 0.05);
             color: var(--mc-accent);
+        }
+        .search-hit {
+            animation: searchPulse 1.8s ease;
+        }
+        @keyframes searchPulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 224, 56, 0); }
+            20% { box-shadow: 0 0 0 3px rgba(56, 224, 56, 0.7); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 224, 56, 0); }
         }
 
         /* Sidebar & Layout Styles */
@@ -351,7 +382,6 @@
         }
     </style>
 </head>
-</head>
 
 
 <body class="bg-[#0a0a0a] text-[#e0e0e0] overflow-hidden flex flex-col md:flex-row h-screen transition-all">
@@ -372,7 +402,7 @@
             
             <div class="relative mb-8">
                 <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500"></i>
-                <input type="text" id="searchEnchant" autocomplete="off" placeholder="Quick Search..." 
+                <input type="text" id="searchEnchant" autocomplete="off" placeholder="Search all tabs..." 
                     class="w-full bg-black/40 border border-white/10 pl-9 pr-3 py-2 rounded-lg text-xs outline-none focus:border-[var(--mc-accent)]">
                 <div id="autocomplete-list"></div>
             </div>
@@ -1374,6 +1404,155 @@
             return queryIdx === query.length;
         }
 
+        const tabSearchMeta = {
+            enchantments: { label: 'Enchantments', type: 'Tab', color: 'bg-green-900/40 text-green-300' },
+            compatibility: { label: 'Exclusions', type: 'Tab', color: 'bg-slate-900/40 text-slate-300' },
+            godgear: { label: 'God Gear', type: 'Tab', color: 'bg-blue-900/40 text-blue-300' },
+            trims: { label: 'Trims', type: 'Tab', color: 'bg-orange-900/40 text-orange-300' },
+            buildhelper: { label: 'Build Helper', type: 'Tab', color: 'bg-sky-900/40 text-sky-300' },
+            villagers: { label: 'Villagers', type: 'Tab', color: 'bg-yellow-900/40 text-yellow-300' },
+            redstone: { label: 'Redstone', type: 'Tab', color: 'bg-red-900/40 text-red-300' },
+            builds: { label: 'Builds', type: 'Tab', color: 'bg-amber-900/40 text-amber-300' },
+            items: { label: 'Items', type: 'Tab', color: 'bg-emerald-900/40 text-emerald-300' },
+            potions: { label: 'Potions', type: 'Tab', color: 'bg-pink-900/40 text-pink-300' },
+            world: { label: 'World', type: 'Tab', color: 'bg-teal-900/40 text-teal-300' },
+            taming: { label: 'Taming', type: 'Tab', color: 'bg-fuchsia-900/40 text-fuchsia-300' },
+            v26features: { label: '1.26', type: 'Tab', color: 'bg-yellow-900/40 text-yellow-300' },
+            utility: { label: 'Utility', type: 'Tab', color: 'bg-violet-900/40 text-violet-300' }
+        };
+
+        let globalSearchIndex = [];
+
+        function cleanSearchText(text = "") {
+            return text.replace(/\s+/g, ' ').replace(/â€¢/g, '').trim();
+        }
+
+        function getSearchSnippet(text, query) {
+            const clean = cleanSearchText(text);
+            if (!clean) return "";
+            const lowerText = clean.toLowerCase();
+            const lowerQuery = query.toLowerCase();
+            const matchIndex = lowerText.indexOf(lowerQuery);
+            if (matchIndex === -1) return clean.slice(0, 90);
+            const start = Math.max(0, matchIndex - 28);
+            const end = Math.min(clean.length, matchIndex + query.length + 52);
+            const snippet = clean.slice(start, end);
+            return `${start > 0 ? '...' : ''}${snippet}${end < clean.length ? '...' : ''}`;
+        }
+
+        function scoreSearchEntry(entry, query) {
+            const lowerQuery = query.toLowerCase();
+            const lowerName = entry.name.toLowerCase();
+            const lowerText = (entry.searchText || '').toLowerCase();
+            let score = 0;
+
+            if (lowerName === lowerQuery) score += 150;
+            if (lowerName.startsWith(lowerQuery)) score += 90;
+            if (lowerName.includes(lowerQuery)) score += 60;
+            if (lowerText.includes(lowerQuery)) score += 25;
+            if (fuzzyMatch(entry.name, query)) score += 15;
+            if (entry.searchText && fuzzyMatch(entry.searchText, query)) score += 8;
+            score -= Math.min(lowerName.length, 80) * 0.08;
+
+            return score;
+        }
+
+        function highlightSearchTarget(target) {
+            if (!target) return;
+            target.classList.add('search-hit');
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            window.setTimeout(() => target.classList.remove('search-hit'), 1800);
+        }
+
+        function activateSearchResult(match, searchInput, autocompleteList) {
+            if (!match) return;
+            if (searchInput) searchInput.value = match.name;
+            if (autocompleteList) autocompleteList.style.display = 'none';
+
+            showTab(match.tab);
+
+            if (match.onSelect) {
+                match.onSelect();
+            }
+
+            window.setTimeout(() => {
+                if (match.targetId) {
+                    highlightSearchTarget(document.getElementById(match.targetId));
+                }
+            }, match.onSelect ? 120 : 40);
+        }
+
+        function buildGlobalSearchIndex() {
+            const index = [];
+            const seen = new Set();
+            let targetCounter = 0;
+
+            function pushEntry(entry) {
+                const name = cleanSearchText(entry.name || "");
+                const searchText = cleanSearchText(entry.searchText || name);
+                if (!name || !entry.tab) return;
+
+                const dedupeKey = `${entry.tab}|${entry.type}|${name.toLowerCase()}`;
+                if (seen.has(dedupeKey)) return;
+                seen.add(dedupeKey);
+
+                index.push({
+                    ...entry,
+                    name,
+                    searchText
+                });
+            }
+
+            Object.entries(tabSearchMeta).forEach(([tabId, meta]) => {
+                pushEntry({
+                    name: meta.label,
+                    type: meta.type,
+                    color: meta.color,
+                    tab: tabId,
+                    searchText: `${meta.label} ${tabId.replace(/([A-Z])/g, ' $1')}`
+                });
+            });
+
+            document.querySelectorAll('.tab-content').forEach(section => {
+                const tabId = section.id.replace('tab-', '');
+                const meta = tabSearchMeta[tabId] || { label: tabId, color: 'bg-neutral-900/40 text-neutral-300' };
+                const candidates = section.querySelectorAll('tbody tr, .card, .ore-bar-container');
+
+                candidates.forEach(node => {
+                    const text = cleanSearchText(node.textContent || "");
+                    if (text.length < 8) return;
+
+                    const titleNode = node.querySelector('h1, h2, h3, h4, strong, .font-bold, .mc-font') || node.querySelector('td');
+                    const title = cleanSearchText(titleNode ? titleNode.textContent : text.split(/[.:]/)[0]);
+                    if (!title) return;
+
+                    if (!node.id) {
+                        node.id = `search-target-${tabId}-${targetCounter++}`;
+                    }
+
+                    pushEntry({
+                        name: title,
+                        type: meta.label,
+                        color: meta.color,
+                        tab: tabId,
+                        targetId: node.id,
+                        searchText: `${title} ${text} ${meta.label}`,
+                        snippet: text
+                    });
+                });
+            });
+
+            pushEntry({
+                name: 'Build Helper',
+                type: 'Feature',
+                color: 'bg-sky-900/40 text-sky-300',
+                tab: 'buildhelper',
+                searchText: `Build Helper ${Object.keys(recommendations).join(' ')}`
+            });
+
+            globalSearchIndex = index;
+        }
+
         function renderEnchantments(filter = "") {
             const body = document.getElementById('enchantmentBody');
             if (!body) return;
@@ -1729,43 +1908,64 @@
             renderVillagers();
             renderRedstone();
             updateBuildHelper();
+            buildGlobalSearchIndex();
 
-            // Search Database Logic
-            const searchEnchant = document.getElementById('searchEnchant');
+            // GLOBAL SEARCH LOGIC
+            const searchInput = document.getElementById('searchEnchant');
             const autocompleteList = document.getElementById('autocomplete-list');
-            if (searchEnchant && autocompleteList) {
-                searchEnchant.addEventListener('input', function() {
+            if (searchInput && autocompleteList) {
+                searchInput.addEventListener('input', function() {
                     const val = this.value;
                     autocompleteList.innerHTML = '';
-                    if (!val) {
+                    if (!val || val.length < 2) {
                         autocompleteList.style.display = 'none';
-                        renderEnchantments("");
                         return;
                     }
 
-                    const matches = enchantments.filter(e => fuzzyMatch(e.name, val));
+                    const matches = globalSearchIndex
+                        .filter(entry => fuzzyMatch(entry.name, val) || fuzzyMatch(entry.searchText, val))
+                        .map(entry => ({ ...entry, score: scoreSearchEntry(entry, val) }))
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 10);
+                    
                     if (matches.length > 0) {
                         autocompleteList.style.display = 'block';
                         matches.forEach(match => {
                             const div = document.createElement('div');
-                            div.className = 'suggestion-item';
-                            div.innerHTML = `<strong>${match.name}</strong> <span class="text-[10px] text-gray-500 float-right">${match.items[0]}</span>`;
+                            const snippet = getSearchSnippet(match.snippet || match.searchText, val);
+                            div.className = 'suggestion-item flex items-start justify-between gap-3';
+                            div.innerHTML = `
+                                <div class="min-w-0">
+                                    <div class="font-bold text-white truncate">${match.name}</div>
+                                    ${snippet ? `<div class="text-[10px] text-gray-400 mt-1 leading-relaxed">${snippet}</div>` : ''}
+                                </div>
+                                <span class="search-tag ${match.color}">${match.type}</span>
+                            `;
                             div.addEventListener('click', function() {
-                                searchEnchant.value = match.name;
-                                autocompleteList.style.display = 'none';
-                                renderEnchantments(match.name);
-                                showTab('enchantments');
+                                activateSearchResult(match, searchInput, autocompleteList);
                             });
                             autocompleteList.appendChild(div);
                         });
                     } else {
                         autocompleteList.style.display = 'none';
-                        renderEnchantments(val);
+                    }
+                });
+
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key !== 'Enter') return;
+                    const firstResult = globalSearchIndex
+                        .filter(entry => fuzzyMatch(entry.name, this.value) || fuzzyMatch(entry.searchText, this.value))
+                        .map(entry => ({ ...entry, score: scoreSearchEntry(entry, this.value) }))
+                        .sort((a, b) => b.score - a.score)[0];
+
+                    if (firstResult) {
+                        e.preventDefault();
+                        activateSearchResult(firstResult, searchInput, autocompleteList);
                     }
                 });
 
                 document.addEventListener('click', (e) => {
-                    if (e.target !== searchEnchant) autocompleteList.style.display = 'none';
+                    if (e.target !== searchInput && !autocompleteList.contains(e.target)) autocompleteList.style.display = 'none';
                 });
             }
 

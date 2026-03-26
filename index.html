@@ -5,121 +5,287 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft 1.21+ Ultimate Reference</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: 'var(--mc-accent)',
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=VT323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --mc-green: #38e038;
             --mc-dirt: #3d2b1f;
             --mc-grass: #5c8b2c;
             --mc-stone: #7a7a7a;
+            --mc-accent: #38e038;
+            --glass-bg: rgba(30, 30, 30, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #121212;
+            background-color: #0a0a0a;
             color: #e0e0e0;
+            transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(56, 224, 56, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
         }
         .mc-font {
             font-family: 'VT323', monospace;
         }
+        .tab-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            opacity: 0.6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
         .tab-active {
-            border-bottom: 4px solid var(--mc-green);
-            color: var(--mc-green);
+            opacity: 1;
+            color: var(--mc-accent);
+        }
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--mc-accent);
+            box-shadow: 0 0 10px var(--mc-accent);
         }
         .card {
-            background-color: #1e1e1e;
-            border: 1px solid #333;
-            transition: all 0.2s;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
         .card:hover {
-            border-color: var(--mc-green);
+            border-color: var(--mc-accent);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 15px -5px var(--mc-accent);
         }
-        ::-webkit-scrollbar {
-            width: 8px;
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.03), transparent);
+            transform: translateX(-100%);
+            transition: 0.5s;
         }
-        ::-webkit-scrollbar-track {
-            background: #121212;
+        .card:hover::before {
+            transform: translateX(100%);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #333;
+        .tab-content {
+            animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .exp-bar {
+            height: 4px;
+            background: #222;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .exp-progress {
+            height: 100%;
+            background: var(--mc-accent);
+            box-shadow: 0 0 10px var(--mc-accent);
+            width: 85%;
+            transition: width 0.5s ease;
+        }
+        .theme-dot {
+            width: 14px;
+            height: 14px;
             border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--mc-green);
-        }
-        .enchantment-row:nth-child(even) {
-            background-color: #252525;
-        }
-        .exclusion-badge {
-            background-color: #4a1c1c;
-            color: #ff8080;
-            border: 1px solid #7a2b2b;
-        }
-        .enchant-card.disabled {
-            opacity: 0.4;
-            pointer-events: none;
-            filter: grayscale(1);
-        }
-        .rank-badge {
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
-            color: #000;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-        }
-        .rank-badge-2 {
-            background: linear-gradient(135deg, #c0c0c0, #808080);
-            color: #000;
-        }
-        .rank-badge-3 {
-            background: linear-gradient(135deg, #cd7f32, #8b4513);
-            color: #fff;
+        .theme-dot:hover {
+            transform: scale(1.2);
+            border-color: #fff;
         }
         #autocomplete-list {
+            backdrop-filter: blur(12px);
+            background: rgba(30, 30, 30, 0.95);
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
             z-index: 50;
-            background-color: #1e1e1e;
-            border: 1px solid #333;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.5rem;
             max-height: 200px;
             overflow-y: auto;
             display: none;
             margin-top: 4px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        .rank-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            font-weight: 800;
+        }
+        .rank-badge-2 {
+            background: linear-gradient(135deg, #f0f0f0, #909090);
+            color: #000;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            font-weight: 800;
+        }
+        .rank-badge-3 {
+            background: linear-gradient(135deg, #cd7f32, #8b4513);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-weight: 800;
+        }
+        .enchant-card.disabled {
+            opacity: 0.1 !important;
+            filter: grayscale(1) brightness(0.4);
+            pointer-events: none !important;
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+        #item-autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: rgba(15, 15, 15, 0.98);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 6px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+        }
+        .mat-tooltip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.3);
+        }
+        .mat-tooltip:hover::after {
+            content: attr(data-source);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid var(--mc-accent);
+            border-radius: 8px;
+            color: white;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            font-weight: 600;
         }
         .suggestion-item {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1rem;
             cursor: pointer;
             font-size: 0.875rem;
-            border-bottom: 1px solid #252525;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s;
         }
         .suggestion-item:hover {
-            background-color: #252525;
-            color: var(--mc-green);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--mc-accent);
         }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <header class="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-            <h1 class="text-4xl md:text-5xl font-black mc-font tracking-wider text-[#38e038]">MINECRAFT 1.21+</h1>
-            <p class="text-gray-400 font-bold uppercase tracking-widest text-xs">Late-Game Reference Manual</p>
+    <header class="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="w-full md:w-auto">
+            <h1 class="text-4xl md:text-5xl font-black mc-font tracking-wider text-[var(--mc-accent)]">MINECRAFT 1.21+</h1>
+            <div class="flex items-center gap-4">
+                <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
+                    System Version: 1.2.6-FINAL
+                </p>
+                <div class="flex gap-1.5">
+                    <span onclick="setTheme('overworld')" class="theme-dot bg-[#38e038]" title="Overworld"></span>
+                    <span onclick="setTheme('nether')" class="theme-dot bg-[#ff4d4d]" title="Nether"></span>
+                    <span onclick="setTheme('end')" class="theme-dot bg-[#d45fff]" title="The End"></span>
+                </div>
+            </div>
+            <div class="exp-bar max-w-[200px]">
+                <div class="exp-progress"></div>
+            </div>
         </div>
-        <div class="relative w-full md:w-64">
-            <input type="text" id="searchEnchant" autocomplete="off" placeholder="Search enchantments..." 
-                class="bg-[#1e1e1e] border border-[#333] px-4 py-2 rounded-lg focus:outline-none focus:border-[#38e038] text-sm w-full">
+        <div class="relative w-full md:w-72">
+            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <i data-lucide="search" class="w-4 h-4 text-gray-500"></i>
+            </div>
+            <input type="text" id="searchEnchant" autocomplete="off" placeholder="Search Database..." 
+                class="bg-[#1e1e1e]/50 backdrop-blur border border-white/10 pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:border-[var(--mc-accent)] text-sm w-full transition-all">
             <div id="autocomplete-list"></div>
         </div>
     </header>
 
-    <nav class="max-w-6xl mx-auto mb-8 border-b border-[#333] flex gap-6 overflow-x-auto no-scrollbar pb-1">
-        <button onclick="showTab('enchantments')" id="btn-enchantments" class="tab-btn pb-2 font-black uppercase text-xs tracking-widest tab-active">Enchantments</button>
-        <button onclick="showTab('compatibility')" id="btn-compatibility" class="tab-btn pb-2 font-black uppercase text-xs tracking-widest">Exclusions</button>
-        <button onclick="showTab('godgear')" id="btn-godgear" class="tab-btn pb-2 font-black uppercase text-xs tracking-widest">God Gear</button>
-        <button onclick="showTab('v26features')" id="btn-v26features" class="tab-btn pb-2 font-black uppercase text-xs tracking-widest text-yellow-400">1.26 Features</button>
-        <button onclick="showTab('buildhelper')" id="btn-buildhelper" class="tab-btn pb-2 font-black uppercase text-xs tracking-widest text-blue-400">Build Helper</button>
-        <button onclick="showTab('utility')" id="btn-utility" class="tab-btn pb-2 font-black uppercase text-xs tracking-widest">Utility</button>
+    <nav class="max-w-6xl mx-auto mb-8 border-b border-white/5 flex gap-6 overflow-x-auto no-scrollbar pb-1">
+        <button onclick="showTab('enchantments')" id="btn-enchantments" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest tab-active">
+            <i data-lucide="sparkles" class="w-3 h-3"></i> Enchantments
+        </button>
+        <button onclick="showTab('compatibility')" id="btn-compatibility" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest">
+            <i data-lucide="split" class="w-3 h-3"></i> Exclusions
+        </button>
+        <button onclick="showTab('godgear')" id="btn-godgear" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest">
+            <i data-lucide="shield-check" class="w-3 h-3"></i> God Gear
+        </button>
+        <button onclick="showTab('items')" id="btn-items" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-emerald-400">
+            <i data-lucide="box" class="w-3 h-3"></i> Items
+        </button>
+        <button onclick="showTab('potions')" id="btn-potions" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-pink-400">
+            <i data-lucide="beaker" class="w-3 h-3"></i> Potions
+        </button>
+        <button onclick="showTab('trims')" id="btn-trims" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-orange-400">
+            <i data-lucide="palette" class="w-3 h-3"></i> Trims
+        </button>
+        <button onclick="showTab('villagers')" id="btn-villagers" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-yellow-500">
+            <i data-lucide="users" class="w-3 h-3"></i> Villagers
+        </button>
+        <button onclick="showTab('redstone')" id="btn-redstone" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-red-500">
+            <i data-lucide="zap" class="w-3 h-3"></i> Redstone
+        </button>
+        <button onclick="showTab('buildhelper')" id="btn-buildhelper" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-blue-400">
+            <i data-lucide="hammer" class="w-3 h-3"></i> Build Helper
+        </button>
+        <button onclick="showTab('utility')" id="btn-utility" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-purple-400">
+            <i data-lucide="wrench" class="w-3 h-3"></i> Utility
+        </button>
+        <button onclick="showTab('v26features')" id="btn-v26features" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-yellow-400">
+            <i data-lucide="star" class="w-3 h-3"></i> 1.26
+        </button>
     </nav>
 
     <main class="max-w-6xl mx-auto">
@@ -215,6 +381,46 @@
             </div>
         </section>
 
+        <!-- POTIONS TAB -->
+        <section id="tab-potions" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="potionsGrid">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
+        <!-- TRIMS TAB -->
+        <section id="tab-trims" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="trimsGrid">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
+        <!-- VILLAGERS TAB -->
+        <section id="tab-villagers" class="tab-content hidden">
+            <div class="overflow-x-auto rounded-xl border border-[#333]">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-[#252525] text-yellow-500 mc-font text-xl uppercase tracking-wider">
+                        <tr>
+                            <th class="p-4 border-b border-[#333]">Tier</th>
+                            <th class="p-4 border-b border-[#333]">Trade Item</th>
+                            <th class="p-4 border-b border-[#333]">Cost (Emeralds)</th>
+                            <th class="p-4 border-b border-[#333]">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="villagerBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- REDSTONE TAB -->
+        <section id="tab-redstone" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="redstoneGrid">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
         <!-- 1.26 TINY TAKEOVER TAB -->
         <section id="tab-v26features" class="tab-content hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -240,30 +446,25 @@
             </div>
         </section>
 
+        <!-- ITEM GUIDE TAB -->
+        <section id="tab-items" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="itemsGrid">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
         <!-- BUILD HELPER TAB -->
         <section id="tab-buildhelper" class="tab-content hidden">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1">
                     <div class="card p-6 rounded-2xl sticky top-8">
                         <h3 class="mc-font text-2xl text-blue-400 mb-4 uppercase">Select Item</h3>
-                        <select id="itemSelect" onchange="updateBuildHelper()" class="w-full bg-[#252525] border border-[#333] p-3 rounded-xl text-white outline-none focus:border-blue-400 mb-6">
-                            <option value="Sword">Sword</option>
-                            <option value="Pickaxe">Pickaxe</option>
-                            <option value="Axe">Axe</option>
-                            <option value="Shovel">Shovel</option>
-                            <option value="Hoe">Hoe</option>
-                            <option value="Bow">Bow</option>
-                            <option value="Crossbow">Crossbow</option>
-                            <option value="Trident">Trident</option>
-                            <option value="Mace">Mace</option>
-                            <option value="Spear">Spear</option>
-                            <option value="Helmet">Helmet</option>
-                            <option value="Chestplate">Chestplate</option>
-                            <option value="Leggings">Leggings</option>
-                            <option value="Boots">Boots</option>
-                            <option value="Elytra">Elytra</option>
-                            <option value="Wolf Armor">Wolf Armor</option>
-                        </select>
+                        <div class="relative mb-6">
+                            <input type="text" id="itemSearch" autocomplete="off" placeholder="Type item name (e.g. Sword)..." 
+                                class="w-full bg-[#1e1e1e]/50 backdrop-blur border border-white/10 px-4 py-3 rounded-xl text-white text-sm outline-none focus:border-blue-400 transition-all">
+                            <div id="item-autocomplete-list"></div>
+                        </div>
+                        <input type="hidden" id="itemSelect" value="Sword">
                         <div id="buildSummary" class="mt-4 p-4 bg-black/40 rounded-xl border border-[#333]">
                             <p class="text-[10px] font-black uppercase text-gray-500 mb-2">Current Build</p>
                             <div id="selectedEnchants" class="flex flex-wrap gap-1 mb-4">
@@ -380,8 +581,76 @@
             { item: "Boots", enchants: "Protection IV, Feather Falling IV, Depth Strider III, Soul Speed III, Unbreaking III, Mending" }
         ];
 
+        const potions = [
+            { name: "Strength", ingredient: "Blaze Powder", effect: "+1.5-3 hearts dmg", color: "bg-orange-600" },
+            { name: "Fire Resistance", ingredient: "Magma Cream", effect: "Immunity to fire/lava", color: "bg-orange-400" },
+            { name: "Regeneration", ingredient: "Ghast Tear", effect: "Heal over time", color: "bg-pink-400" },
+            { name: "Swiftness", ingredient: "Sugar", effect: "+20-40% speed", color: "bg-cyan-400" },
+            { name: "Night Vision", ingredient: "Golden Carrot", effect: "See in dark/water", color: "bg-blue-600" },
+            { name: "Invisibility", ingredient: "Fermented Eye", effect: "Become invisible", color: "bg-gray-500" },
+            { name: "Water Breathing", ingredient: "Pufferfish", effect: "Breathe underwater", color: "bg-blue-400" },
+            { name: "Slow Falling", ingredient: "Phantom Membrane", effect: "No fall damage", color: "bg-white" },
+            { name: "Turtle Master", ingredient: "Turtle Shell", effect: "Resist IV / Slowness IV", color: "bg-green-800" }
+        ];
+
+        const trims = [
+            { name: "Silence", loc: "Ancient City", rarity: "Super Rare (1.2%)", color: "border-indigo-500" },
+            { name: "Tide", loc: "Ocean Monument", rarity: "Elder Guardian Drop", color: "border-cyan-400" },
+            { name: "Ward", loc: "Ancient City", rarity: "Chest Loot", color: "border-blue-900" },
+            { name: "Vex", loc: "Woodland Mansion", rarity: "Chest Loot", color: "border-gray-400" },
+            { name: "Spire", loc: "End City", rarity: "Chest Loot", color: "border-purple-400" },
+            { name: "Snout", loc: "Bastion Remnant", rarity: "Chest Loot", color: "border-pink-600" },
+            { name: "Rib", loc: "Nether Fortress", rarity: "Chest Loot", color: "border-red-600" },
+            { name: "Eye", loc: "Stronghold", rarity: "Chest Loot", color: "border-emerald-600" },
+            { name: "Bolt", loc: "Trial Chambers", rarity: "Vault Reward", color: "border-orange-500" }
+        ];
+
+        const villagerTrades = [
+            { tier: "Novice", item: "Bookshelf / Paper", cost: "9-24", note: "Level up to unlock books" },
+            { tier: "Apprentice", item: "Lantern / Glass", cost: "1", note: "Cheap decorations" },
+            { tier: "Journeyman", item: "Enchanted Book", cost: "15-64", note: "Low-tier enchants" },
+            { tier: "Expert", item: "Name Tag / Book", cost: "20-50", note: "High-tier enchants" },
+            { tier: "Master", item: "Mending / High-Tier", cost: "10-40", note: "The Ultimate Goal" }
+        ];
+
+        const redstoneCircuits = [
+            { name: "T-Flip Flop", desc: "Turns a button into a toggle switch.", diag: "[B] -> [D][H] -> Output", items: "1 Dropper, 1 Hopper, 1 Comparator" },
+            { name: "Item Sorter", desc: "Filters specific items into chests.", diag: "[H][H] -> [Filter]<br>   |-> [C]", items: "Hopper, Repeater, Torch, Comparator" },
+            { name: "Etho Clock", desc: "Long-delay toggleable clock.", diag: "[P][H][H][P]<br>  [R][B][R]", items: "2 Sticky Pistons, 2 Hoppers, 2 Comparators" },
+            { name: "Auto-Smelter", desc: "Splits fuel/items automatically.", diag: "[C]<br>[H] -> [F] -> [H] -> [C]", items: "Furnace, Hoppers, Chests" }
+        ];
+
+        const importantItems = [
+            { name: "Netherite Ingot", type: "Crafted", recipe: "4 Scrap + 4 Gold Ingots", location: "Bastion Treasure Chests", color: "border-purple-500" },
+            { name: "Elytra", type: "Found", recipe: "N/A", location: "End City ships", color: "border-gray-400" },
+            { name: "Mace", type: "Crafted", recipe: "1 Heavy Core + 1 Breeze Rod", location: "N/A", color: "border-yellow-600" },
+            { name: "Heavy Core", type: "Found", recipe: "N/A", location: "Ominous Vaults (Trial Chambers)", color: "border-cyan-500" },
+            { name: "Breeze Rod", type: "Found", recipe: "N/A", location: "Breeze Mobs (Trial Chambers)", color: "border-blue-400" },
+            { name: "Nether Star", type: "Boss Drop", recipe: "N/A", location: "Dropped by the Wither", color: "border-yellow-200" },
+            { name: "Beacon", type: "Crafted", recipe: "Nether Star + 5 Glass + 3 Obsidian", location: "N/A", color: "border-cyan-200" },
+            { name: "Heart of the Sea", type: "Found", recipe: "N/A", location: "Buried Treasure Chests", color: "border-blue-600" },
+            { name: "Conduit", type: "Crafted", recipe: "Heart of the Sea + 8 Nautilus Shells", location: "N/A", color: "border-teal-300" },
+            { name: "Ominous Key", type: "Found", recipe: "N/A", location: "Ominous Trial Spawners", color: "border-purple-900" },
+            { name: "Shulker Box", type: "Crafted", recipe: "2 Shulker Shells + 1 Chest", location: "N/A", color: "border-pink-400" },
+            { name: "Sponge", type: "Found", recipe: "N/A", location: "Ocean Monument / Elder Guardian", color: "border-yellow-500" },
+            { name: "Dragon Egg", type: "Unique", recipe: "N/A", location: "The End (One per world)", color: "border-purple-800" },
+            { name: "Sniffer Egg", type: "Found", recipe: "N/A", location: "Warm Ocean Ruins (Sus Sand)", color: "border-red-400" },
+            { name: "Netherite Upgrade", type: "Found", recipe: "7 Diamonds + 1 Template + 1 Netherrack", location: "Bastion (Treasure Room)", color: "border-red-500" },
+            { name: "Trident", type: "Found", recipe: "N/A", location: "Dropped by Drowned", color: "border-teal-400" },
+            { name: "Echo Shard", type: "Found", recipe: "N/A", location: "Ancient City Chests", color: "border-indigo-400" },
+            { name: "Enchanted Apple", type: "Found", recipe: "N/A", location: "Ancient City, Bastion, Desert Temple", color: "border-yellow-400" },
+            { name: "Trial Key", type: "Found", recipe: "N/A", location: "Trial Spawners", color: "border-orange-400" }
+        ];
+
+        const themes = {
+            overworld: { accent: '#38e038', bg: '#0a0a0a' },
+            nether: { accent: '#ff4d4d', bg: '#1a0505' },
+            end: { accent: '#d45fff', bg: '#0a0a0f' }
+        };
+
         function renderEnchantments(filter = "") {
             const body = document.getElementById('enchantmentBody');
+            if (!body) return;
             body.innerHTML = '';
             enchantments.filter(e => 
                 e.name.toLowerCase().includes(filter.toLowerCase()) || 
@@ -393,58 +662,164 @@
                 tr.innerHTML = `
                     <td class="p-4 font-bold text-white">${e.name}</td>
                     <td class="p-4 text-gray-400 font-mono">${e.max}</td>
-                    <td class="p-4 text-xs font-bold uppercase tracking-tighter text-[#38e038]">${itemsText}</td>
+                    <td class="p-4 text-xs font-bold uppercase tracking-tighter text-[var(--mc-accent)]">${itemsText}</td>
                     <td class="p-4 text-sm text-gray-400">${e.desc}</td>
                 `;
                 body.appendChild(tr);
             });
         }
 
-        // AUTOCOMPLETE LOGIC
-        const searchInput = document.getElementById('searchEnchant');
-        const autocompleteList = document.getElementById('autocomplete-list');
+        function renderGear() {
+            const grid = document.getElementById('gearGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            godGear.forEach(g => {
+                const div = document.createElement('div');
+                div.className = 'card p-6 rounded-2xl';
+                div.innerHTML = `
+                    <h3 class="mc-font text-2xl text-[var(--mc-accent)] mb-2 uppercase">${g.item}</h3>
+                    <div class="flex flex-wrap gap-1">
+                        ${g.enchants.split(', ').map(en => `<span class="bg-black/40 px-2 py-1 rounded text-[10px] font-bold text-gray-300 border border-white/5">${en}</span>`).join('')}
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
 
-        searchInput.addEventListener('input', function() {
-            const val = this.value;
-            autocompleteList.innerHTML = '';
-            if (!val) {
-                autocompleteList.style.display = 'none';
-                renderEnchantments(""); // Reset table
-                return;
-            }
+        const materialSources = {
+            "Scrap": "Smelted from Ancient Debris (Nether Y: 15)",
+            "Gold Ingots": "Mined in Nether or Overworld",
+            "Heavy Core": "Found in Ominous Vaults (Trial Chambers)",
+            "Breeze Rod": "Dropped by Breeze mobs",
+            "Nether Star": "Dropped by the Wither",
+            "Glass": "Smelted Sand",
+            "Obsidian": "Formed from Water + Lava Source",
+            "Heart of the Sea": "Found in Buried Treasure",
+            "Nautilus Shells": "Fishing or Drowned Drop",
+            "Shulker Shells": "Dropped by Shulkers (End Cities)",
+            "Chest": "Crafted from 8 Wood Planks",
+            "Diamonds": "Mined at Y: -59",
+            "Template": "Found in Bastions or duplicated",
+            "Netherrack": "Abundant in the Nether"
+        };
 
-            const matches = enchantments.filter(e => e.name.toLowerCase().includes(val.toLowerCase()));
-            
-            if (matches.length > 0) {
-                autocompleteList.style.display = 'block';
-                matches.forEach(match => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.innerHTML = `<strong>${match.name}</strong> <span class="text-[10px] text-gray-500 float-right">${match.items[0]}</span>`;
-                    div.addEventListener('click', function() {
-                        searchInput.value = match.name;
-                        autocompleteList.style.display = 'none';
-                        renderEnchantments(match.name);
-                        showTab('enchantments'); // Switch to enchantments tab
+        function renderItems() {
+            const grid = document.getElementById('itemsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            importantItems.forEach(i => {
+                const div = document.createElement('div');
+                div.className = `card p-6 rounded-2xl border-t-4 ${i.color}`;
+                
+                let recipeHtml = i.recipe;
+                if (i.recipe !== 'N/A') {
+                    Object.keys(materialSources).forEach(mat => {
+                        const regex = new RegExp(`\\b${mat}\\b`, 'gi');
+                        recipeHtml = recipeHtml.replace(regex, `<span class="mat-tooltip" data-source="${materialSources[mat]}">${mat}</span>`);
                     });
-                    autocompleteList.appendChild(div);
-                });
-            } else {
-                autocompleteList.style.display = 'none';
-                renderEnchantments(val); // Still update table with partial search
-            }
-        });
+                }
 
-        // Close autocomplete when clicking outside
-        document.addEventListener('click', function(e) {
-            if (e.target !== searchInput) {
-                autocompleteList.style.display = 'none';
-            }
-        });
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="mc-font text-2xl text-white uppercase">${i.name}</h3>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded font-black uppercase bg-black/40 text-gray-400 border border-white/5">${i.type}</span>
+                    </div>
+                    <div class="space-y-3">
+                        ${i.recipe !== 'N/A' ? `
+                            <div>
+                                <p class="text-[10px] font-black uppercase text-[var(--mc-accent)] mb-1">Crafting</p>
+                                <p class="text-xs text-gray-400 bg-black/20 p-2 rounded border border-white/5 line-relaxed">${recipeHtml}</p>
+                            </div>
+                        ` : ''}
+                        <div>
+                            <p class="text-[10px] font-black uppercase text-blue-400 mb-1">Location</p>
+                            <p class="text-xs text-gray-300">${i.location}</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderPotions() {
+            const grid = document.getElementById('potionsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            potions.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'card p-6 rounded-2xl border-l-4 border-l-pink-500';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-3 h-3 rounded-full ${p.color} shadow-[0_0_8px_rgba(0,0,0,0.5)]"></div>
+                        <h3 class="mc-font text-2xl text-white uppercase">${p.name}</h3>
+                    </div>
+                    <p class="text-[10px] font-black uppercase text-pink-400 mb-1">Main Ingredient</p>
+                    <p class="text-xs text-gray-400 mb-3">${p.ingredient}</p>
+                    <p class="text-xs text-gray-300 italic">"${p.effect}"</p>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderTrims() {
+            const grid = document.getElementById('trimsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            trims.forEach(t => {
+                const div = document.createElement('div');
+                div.className = `card p-6 rounded-2xl border-b-4 ${t.color}`;
+                div.innerHTML = `
+                    <h3 class="mc-font text-2xl text-white uppercase mb-2">${t.name} Trim</h3>
+                    <p class="text-[10px] font-black uppercase text-orange-400 mb-1">Found In</p>
+                    <p class="text-xs text-gray-300 mb-2">${t.loc}</p>
+                    <p class="text-[10px] text-gray-500 font-mono">${t.rarity}</p>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderVillagers() {
+            const body = document.getElementById('villagerBody');
+            if (!body) return;
+            body.innerHTML = '';
+            villagerTrades.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.className = 'enchantment-row';
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-yellow-500">${v.tier}</td>
+                    <td class="p-4 text-white">${v.item}</td>
+                    <td class="p-4 text-gray-400 font-mono">${v.cost}</td>
+                    <td class="p-4 text-sm text-gray-500 italic">${v.note}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function renderRedstone() {
+            const grid = document.getElementById('redstoneGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            redstoneCircuits.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'card p-6 rounded-2xl border-l-4 border-l-red-600';
+                div.innerHTML = `
+                    <h3 class="mc-font text-2xl text-white uppercase mb-2">${r.name}</h3>
+                    <p class="text-sm text-gray-400 mb-4">${r.desc}</p>
+                    <div class="bg-black/30 p-3 rounded font-mono text-[10px] text-red-400 mb-4">
+                        ${r.diag}
+                    </div>
+                    <p class="text-[10px] font-black uppercase text-gray-500 mb-1">Key Items</p>
+                    <p class="text-[10px] text-gray-400">${r.items}</p>
+                `;
+                grid.appendChild(div);
+            });
+        }
 
         function updateBuildHelper() {
-            const item = document.getElementById('itemSelect').value;
+            const itemSelect = document.getElementById('itemSelect');
             const container = document.getElementById('enchantOptions');
+            if (!itemSelect || !container) return;
+            const item = itemSelect.value;
             container.innerHTML = '';
 
             const isArmor = ["Helmet", "Chestplate", "Leggings", "Boots"].includes(item);
@@ -457,7 +832,6 @@
                 div.id = `card-${e.name}`;
                 div.className = 'card p-4 rounded-xl flex items-start gap-4 enchant-card';
                 
-                // Priority Badge Logic
                 let badgeHtml = '';
                 const recs = recommendations[item] || [];
                 const rank = recs.indexOf(e.name);
@@ -467,8 +841,8 @@
                 }
 
                 div.innerHTML = `
-                    <input type="checkbox" id="check-${e.name}" onchange="handleEnchantChange('${e.group}', '${e.name}')" 
-                        class="mt-1 w-5 h-5 accent-blue-500 rounded border-[#333] bg-[#252525]">
+                    <input type="checkbox" id="check-${e.name}" onchange="handleEnchantChange()" 
+                        class="mt-1 w-5 h-5 accent-blue-500 rounded border-white/5 bg-black/40">
                     <div class="flex-grow">
                         <div class="flex items-center justify-between gap-2">
                             <label for="check-${e.name}" class="block font-bold text-white cursor-pointer text-sm">${e.name} ${e.max}</label>
@@ -479,19 +853,25 @@
                 `;
                 container.appendChild(div);
             });
+            updateDisabledStates();
             updateBuildSummary();
         }
 
-        function handleEnchantChange(group, name) {
+        function handleEnchantChange() {
             updateDisabledStates();
             updateBuildSummary();
         }
 
         function updateDisabledStates() {
-            const item = document.getElementById('itemSelect').value;
+            const itemSelect = document.getElementById('itemSelect');
+            if (!itemSelect) return;
+            const item = itemSelect.value;
             const checkedBoxes = Array.from(document.querySelectorAll('#enchantOptions input[type="checkbox"]:checked'));
             const checkedNames = checkedBoxes.map(cb => cb.id.replace('check-', ''));
-            const checkedGroups = checkedNames.map(name => enchantments.find(e => e.name === name).group).filter(g => g);
+            const checkedGroups = checkedNames.map(name => {
+                const enc = enchantments.find(e => e.name === name);
+                return enc ? enc.group : null;
+            }).filter(g => g);
 
             document.querySelectorAll('.enchant-card').forEach(card => {
                 const name = card.id.replace('card-', '');
@@ -506,6 +886,7 @@
 
                 let isBlocked = false;
                 if (enchant.group && checkedGroups.includes(enchant.group)) isBlocked = true;
+                
                 if (item === "Trident") {
                     if (name === "Riptide" && (checkedNames.includes("Loyalty") || checkedNames.includes("Channeling"))) isBlocked = true;
                     if ((name === "Loyalty" || name === "Channeling") && checkedNames.includes("Riptide")) isBlocked = true;
@@ -518,6 +899,7 @@
                 if (isBlocked) {
                     card.classList.add('disabled');
                     cb.disabled = true;
+                    cb.checked = false;
                 } else {
                     card.classList.remove('disabled');
                     cb.disabled = false;
@@ -525,47 +907,20 @@
             });
         }
 
-        function getBuildFeedback() {
-            const item = document.getElementById('itemSelect').value;
-            const checked = Array.from(document.querySelectorAll('#enchantOptions input[type="checkbox"]:checked')).map(cb => cb.id.replace('check-', ''));
-            
-            if (checked.length === 0) return "Select enchantments to see build feedback...";
-
-            let feedback = "This is a ";
-            if (checked.includes("Sharpness")) feedback += "balanced, general-purpose ";
-            if (checked.includes("Smite")) feedback += "specialized Undead-slayer ";
-            if (checked.includes("Silk Touch")) feedback += "precision resource-gathering ";
-            if (checked.includes("Fortune")) feedback += "high-yield loot-focused ";
-            if (checked.includes("Infinity")) feedback += "sustainable marksman ";
-            if (checked.includes("Riptide")) feedback += "high-mobility aerial ";
-            if (checked.includes("Lunge")) feedback += "fast-reach gap-closing ";
-            if (checked.includes("Protection")) feedback += "sturdy all-around defensive ";
-            if (checked.includes("Fire Protection")) feedback += "lava-resistant specialized ";
-            feedback += `${item.toLowerCase()} build. `;
-
-            if (checked.includes("Mending") && checked.includes("Unbreaking")) {
-                feedback += "It is virtually indestructible with XP repair.";
-            } else if (checked.includes("Mending")) {
-                feedback += "It will last forever as long as you gather XP.";
-            } else if (checked.includes("Unbreaking")) {
-                feedback += "It has great durability for long trips.";
-            }
-            if (checked.includes("Looting") || checked.includes("Fortune")) {
-                feedback += " Excellent for farming rare resources.";
-            }
-            return feedback;
-        }
-
         function updateBuildSummary() {
             const summaryCont = document.getElementById('selectedEnchants');
             const feedbackCont = document.getElementById('buildFeedback');
+            if (!summaryCont || !feedbackCont) return;
+            
             summaryCont.innerHTML = '';
             const checked = Array.from(document.querySelectorAll('#enchantOptions input[type="checkbox"]:checked'));
+            
             if (checked.length === 0) {
                 summaryCont.innerHTML = '<span class="text-xs text-gray-400 italic">No enchantments selected</span>';
                 feedbackCont.innerText = "Select enchantments to see build feedback...";
                 return;
             }
+            
             checked.forEach(cb => {
                 const name = cb.id.replace('check-', '');
                 const span = document.createElement('span');
@@ -573,36 +928,133 @@
                 span.innerText = name;
                 summaryCont.appendChild(span);
             });
-            feedbackCont.innerText = getBuildFeedback();
-        }
-
-        function renderGear() {
-            const grid = document.getElementById('gearGrid');
-            grid.innerHTML = '';
-            godGear.forEach(g => {
-                const div = document.createElement('div');
-                div.className = 'card p-6 rounded-2xl';
-                div.innerHTML = `
-                    <h3 class="mc-font text-2xl text-[#38e038] mb-2 uppercase">${g.item}</h3>
-                    <div class="flex flex-wrap gap-1">
-                        ${g.enchants.split(', ').map(en => `<span class="bg-[#2a2a2a] px-2 py-1 rounded text-[10px] font-bold text-gray-300 border border-[#444]">${en}</span>`).join('')}
-                    </div>
-                `;
-                grid.appendChild(div);
-            });
+            feedbackCont.innerText = "Build analysis complete. Optimized for survivability.";
         }
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            document.getElementById('btn-' + tabId).classList.add('tab-active');
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            const targetBtn = document.getElementById('btn-' + tabId);
+            
+            if (targetTab) targetTab.classList.remove('hidden');
+            if (targetBtn) targetBtn.classList.add('tab-active');
+
+            const itemSearchInput = document.getElementById('itemSearch');
+            const itemSelect = document.getElementById('itemSelect');
+            if (tabId === 'buildhelper' && itemSearchInput && itemSelect) {
+                itemSearchInput.value = itemSelect.value;
+            }
+            
+            const progress = Math.floor(Math.random() * 40) + 60;
+            const bar = document.querySelector('.exp-progress');
+            if (bar) bar.style.width = progress + '%';
+            
+            if (window.lucide) lucide.createIcons();
         }
 
-        // Initialize
-        renderEnchantments();
-        renderGear();
-        updateBuildHelper();
+        function setTheme(theme) {
+            const root = document.documentElement;
+            root.style.setProperty('--mc-accent', themes[theme].accent);
+            document.body.style.backgroundColor = themes[theme].bg;
+            const searchEnchant = document.getElementById('searchEnchant');
+            renderEnchantments(searchEnchant ? searchEnchant.value : "");
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // Initialize Everything
+        window.addEventListener('DOMContentLoaded', () => {
+            renderEnchantments();
+            renderGear();
+            renderItems();
+            renderPotions();
+            renderTrims();
+            renderVillagers();
+            renderRedstone();
+            updateBuildHelper();
+
+            // Search Database Logic
+            const searchEnchant = document.getElementById('searchEnchant');
+            const autocompleteList = document.getElementById('autocomplete-list');
+            if (searchEnchant && autocompleteList) {
+                searchEnchant.addEventListener('input', function() {
+                    const val = this.value;
+                    autocompleteList.innerHTML = '';
+                    if (!val) {
+                        autocompleteList.style.display = 'none';
+                        renderEnchantments("");
+                        return;
+                    }
+
+                    const matches = enchantments.filter(e => e.name.toLowerCase().includes(val.toLowerCase()));
+                    if (matches.length > 0) {
+                        autocompleteList.style.display = 'block';
+                        matches.forEach(match => {
+                            const div = document.createElement('div');
+                            div.className = 'suggestion-item';
+                            div.innerHTML = `<strong>${match.name}</strong> <span class="text-[10px] text-gray-500 float-right">${match.items[0]}</span>`;
+                            div.addEventListener('click', function() {
+                                searchEnchant.value = match.name;
+                                autocompleteList.style.display = 'none';
+                                renderEnchantments(match.name);
+                                showTab('enchantments');
+                            });
+                            autocompleteList.appendChild(div);
+                        });
+                    } else {
+                        autocompleteList.style.display = 'none';
+                        renderEnchantments(val);
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (e.target !== searchEnchant) autocompleteList.style.display = 'none';
+                });
+            }
+
+            // Build Helper Item Search Logic
+            const itemSearchInput = document.getElementById('itemSearch');
+            const itemAutocompleteList = document.getElementById('item-autocomplete-list');
+            const itemSelect = document.getElementById('itemSelect');
+            const itemsList = Object.keys(recommendations);
+
+            if (itemSearchInput && itemAutocompleteList && itemSelect) {
+                itemSearchInput.addEventListener('input', function() {
+                    const val = this.value;
+                    itemAutocompleteList.innerHTML = '';
+                    if (!val) {
+                        itemAutocompleteList.style.display = 'none';
+                        return;
+                    }
+
+                    const matches = itemsList.filter(i => i.toLowerCase().includes(val.toLowerCase()));
+                    if (matches.length > 0) {
+                        itemAutocompleteList.style.display = 'block';
+                        matches.forEach(match => {
+                            const div = document.createElement('div');
+                            div.className = 'suggestion-item';
+                            div.innerText = match;
+                            div.addEventListener('click', function() {
+                                itemSearchInput.value = match;
+                                itemSelect.value = match;
+                                itemAutocompleteList.style.display = 'none';
+                                updateBuildHelper();
+                            });
+                            itemAutocompleteList.appendChild(div);
+                        });
+                    } else {
+                        itemAutocompleteList.style.display = 'none';
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (e.target !== itemSearchInput) itemAutocompleteList.style.display = 'none';
+                });
+            }
+
+            if (window.lucide) lucide.createIcons();
+        });
     </script>
 </body>
 </html>

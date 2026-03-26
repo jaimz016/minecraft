@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Minecraft 1.21+ Ultimate Reference</title>
+    <link rel="manifest" href="minecraft-manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3532/3532450.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -221,6 +227,13 @@
             background: rgba(255, 255, 255, 0.05);
             color: var(--mc-accent);
         }
+        @media (max-width: 640px) {
+            table { font-size: 0.75rem; }
+            th, td { padding: 0.5rem !important; }
+            .mc-font { font-size: 1.25rem !important; }
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -287,6 +300,13 @@
             <i data-lucide="star" class="w-3 h-3"></i> 1.26
         </button>
     </nav>
+
+    <!-- Floating Install Button -->
+    <div id="install-banner" class="fixed bottom-6 right-6 z-[100] hidden">
+        <button onclick="installPWA()" class="bg-[var(--mc-accent)] text-black font-black py-3 px-6 rounded-full shadow-[0_0_20px_var(--mc-accent)] flex items-center gap-2 active:scale-95 transition-all text-sm uppercase tracking-tighter">
+            <i data-lucide="download" class="w-4 h-4"></i> Install App
+        </button>
+    </div>
 
     <main class="max-w-6xl mx-auto">
         
@@ -1055,6 +1075,39 @@
 
             if (window.lucide) lucide.createIcons();
         });
+
+        // PWA Logic
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBanner) installBanner.classList.remove('hidden');
+        });
+
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                if (installBanner) installBanner.classList.add('hidden');
+            }
+            deferredPrompt = null;
+        }
+
+        window.addEventListener('appinstalled', () => {
+            if (installBanner) installBanner.classList.add('hidden');
+            deferredPrompt = null;
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./minecraft-sw.js')
+                    .then(reg => console.log('MC SW Registered'))
+                    .catch(err => console.log('MC SW Error:', err));
+            });
+        }
     </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft 1.21+ Ultimate Reference</title>
     <link rel="manifest" href="minecraft-manifest.json">
     <meta name="theme-color" content="#0a0a0a">
@@ -234,8 +234,95 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Ore Chart Styles */
+        .ore-grid {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 12px;
+            background: rgba(0,0,0,0.3);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .y-axis {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'VT323', monospace;
+            color: #666;
+            font-size: 14px;
+            height: 400px;
+            padding-bottom: 20px;
+        }
+        .chart-area {
+            display: flex;
+            gap: 8px;
+            height: 400px;
+            align-items: flex-end;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        .ore-bar-container {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            position: relative;
+        }
+        .ore-bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .ore-bar:hover {
+            filter: brightness(1.3);
+            transform: scaleX(1.1);
+        }
+        .ore-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #aaa;
+        }
+        .diamond-bar { background: linear-gradient(to top, #33ebff, #1a8a99); }
+        .iron-bar { background: linear-gradient(to top, #e8e8e8, #a0a0a0); }
+        .gold-bar { background: linear-gradient(to top, #ffdf00, #c5a000); }
+        .copper-bar { background: linear-gradient(to top, #e77c56, #a15439); }
+        .coal-bar { background: linear-gradient(to top, #333, #111); }
+        .redstone-bar { background: linear-gradient(to top, #ff0000, #990000); }
+        .lapis-bar { background: linear-gradient(to top, #1a3daa, #0d1f55); }
+        .emerald-bar { background: linear-gradient(to top, #17dd62, #0b6b2f); }
+
+        /* Inventory Slot for Sprites */
+        .mc-slot {
+            width: 32px;
+            height: 32px;
+            background: #8b8b8b;
+            border: 2px solid;
+            border-color: #373737 #ffffff #ffffff #373737;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            image-rendering: pixelated;
+            flex-shrink: 0;
+        }
+        .mc-slot i {
+            width: 20px;
+            height: 20px;
+            color: #333;
+        }
     </style>
 </head>
+
+
 <body class="p-4 md:p-8">
 
     <header class="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -298,6 +385,9 @@
         </button>
         <button onclick="showTab('v26features')" id="btn-v26features" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-yellow-400">
             <i data-lucide="star" class="w-3 h-3"></i> 1.26
+        </button>
+        <button onclick="showTab('world')" id="btn-world" class="tab-btn pb-2 font-black uppercase text-[10px] tracking-widest text-emerald-500">
+            <i data-lucide="globe" class="w-3 h-3"></i> World
         </button>
     </nav>
 
@@ -526,6 +616,69 @@
             </div>
         </section>
 
+        <!-- WORLD TAB -->
+        <section id="tab-world" class="tab-content hidden">
+            <div class="card p-6 rounded-2xl mb-8">
+                <h3 class="mc-font text-2xl text-[var(--mc-accent)] mb-6 uppercase">Ore Distribution (1.21+)</h3>
+                <div class="ore-grid">
+                    <div class="y-axis">
+                        <span>Y: 256</span>
+                        <span>Y: 128</span>
+                        <span>Y: 64</span>
+                        <span>Y: 0</span>
+                        <span>Y: -32</span>
+                        <span>Y: -64</span>
+                    </div>
+                    <div class="chart-area">
+                        <!-- Coal: 0 to 256 -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar coal-bar h-full" title="Coal: Y:0 to Y:256"></div>
+                            <span class="ore-label">Coal</span>
+                        </div>
+                        <!-- Iron: Two peaks -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar iron-bar h-[90%]" title="Iron: Peak Y:232 & Y:16"></div>
+                            <span class="ore-label">Iron</span>
+                        </div>
+                        <!-- Copper: -16 to 112 -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar copper-bar h-[60%] mb-[15%]" title="Copper: Peak Y:48"></div>
+                            <span class="ore-label">Copper</span>
+                        </div>
+                        <!-- Emerald: -16 to 256 -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar emerald-bar h-[85%] mb-[15%]" title="Emerald: Peak Y:232 (Mountains)"></div>
+                            <span class="ore-label">Emerald</span>
+                        </div>
+                        <!-- Gold: -64 to 32 -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar gold-bar h-[30%] mb-0" title="Gold: Peak Y:-16"></div>
+                            <span class="ore-label">Gold</span>
+                        </div>
+                        <!-- Lapis: -64 to 64 -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar lapis-bar h-[40%] mb-0" title="Lapis: Peak Y:0"></div>
+                            <span class="ore-label">Lapis</span>
+                        </div>
+                        <!-- Redstone: -64 to 16 -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar redstone-bar h-[25%] mb-0" title="Redstone: Peak Y:-64"></div>
+                            <span class="ore-label">Redstone</span>
+                        </div>
+                        <!-- Diamond: -64 to 16 -->
+                        <div class="ore-bar-container">
+                            <div class="ore-bar diamond-bar h-[25%] mb-0" title="Diamond: Peak Y:-64"></div>
+                            <span class="ore-label">Diamond</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-400">
+                    <p class="flex items-center gap-2"><i data-lucide="info" class="w-3 h-3 text-cyan-400"></i> Most ores now use "Triangular Distribution", meaning they are more common in the middle of their range.</p>
+                    <p class="flex items-center gap-2"><i data-lucide="info" class="w-3 h-3 text-cyan-400"></i> Diamond/Redstone become more common the deeper you go, peaking at bedrock (Y:-64).</p>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -668,25 +821,54 @@
             end: { accent: '#d45fff', bg: '#0a0a0f' }
         };
 
+        const itemIconMap = {
+            "Sword": "sword", "Pickaxe": "pickaxe", "Axe": "axe", "Shovel": "shovel",
+            "Hoe": "grab", "Bow": "arrow-up", "Crossbow": "target", "Trident": "tally-3",
+            "Mace": "hammer", "Spear": "arrow-up-right", "Helmet": "hard-hat",
+            "Chestplate": "shield", "Leggings": "columns-2", "Boots": "footprints",
+            "Elytra": "wind", "Everything": "package", "Armor": "shield", "Wolf Armor": "dog"
+        };
+
+        function fuzzyMatch(str, query) {
+            str = str.toLowerCase();
+            query = query.toLowerCase();
+            if (str.includes(query)) return true;
+            
+            let queryIdx = 0;
+            for (let i = 0; i < str.length && queryIdx < query.length; i++) {
+                if (str[i] === query[queryIdx]) queryIdx++;
+            }
+            return queryIdx === query.length;
+        }
+
         function renderEnchantments(filter = "") {
             const body = document.getElementById('enchantmentBody');
             if (!body) return;
             body.innerHTML = '';
             enchantments.filter(e => 
-                e.name.toLowerCase().includes(filter.toLowerCase()) || 
-                e.items.some(i => i.toLowerCase().includes(filter.toLowerCase()))
+                fuzzyMatch(e.name, filter) || 
+                e.items.some(i => fuzzyMatch(i, filter))
             ).forEach(e => {
                 const tr = document.createElement('tr');
                 tr.className = 'enchantment-row';
+                const mainItem = e.items[0];
+                const iconName = itemIconMap[mainItem] || "sparkles";
+                
                 const itemsText = Array.isArray(e.items) ? e.items.join(', ') : e.items;
                 tr.innerHTML = `
-                    <td class="p-4 font-bold text-white">${e.name}</td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="mc-slot"><i data-lucide="${iconName}"></i></div>
+                            <span class="font-bold text-white">${e.name}</span>
+                        </div>
+                    </td>
                     <td class="p-4 text-gray-400 font-mono">${e.max}</td>
                     <td class="p-4 text-xs font-bold uppercase tracking-tighter text-[var(--mc-accent)]">${itemsText}</td>
                     <td class="p-4 text-sm text-gray-400">${e.desc}</td>
                 `;
                 body.appendChild(tr);
             });
+            if (window.lucide) lucide.createIcons();
         }
 
         function renderGear() {
@@ -1007,7 +1189,7 @@
                         return;
                     }
 
-                    const matches = enchantments.filter(e => e.name.toLowerCase().includes(val.toLowerCase()));
+                    const matches = enchantments.filter(e => fuzzyMatch(e.name, val));
                     if (matches.length > 0) {
                         autocompleteList.style.display = 'block';
                         matches.forEach(match => {

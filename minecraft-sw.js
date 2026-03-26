@@ -1,6 +1,6 @@
 const CACHE_NAME = 'mc-guide-v1';
 const ASSETS = [
-  './minecraft-guide.html',
+  './index.html',
   './minecraft-manifest.json',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=VT323&display=swap',

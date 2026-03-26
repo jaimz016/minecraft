@@ -2,7 +2,7 @@
   "name": "Minecraft 1.21+ Ultimate Reference",
   "short_name": "MC Guide",
   "description": "Ultimate reference for Minecraft 1.21+ enchantments, potions, and more.",
-  "start_url": "./minecraft-guide.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#38e038",

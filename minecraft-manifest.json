@@ -3,14 +3,15 @@
   "short_name": "MC Guide",
   "description": "Ultimate reference for Minecraft 1.21+ enchantments, potions, and more.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#38e038",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3532/3532450.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "./mc-guide-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]
